@@ -1,34 +1,28 @@
-import { PostCardContainer } from './styles'
-import { formatDistanceToNow } from 'date-fns'
-import ptBR from 'date-fns/locale/pt-BR'
+import { Content, PostCardContainer } from './styles'
 import { NavLink } from 'react-router-dom'
+import { Issue } from '../../../../contexts/IssuesContext'
+import { formatDateToRelativeTime } from '../../../../utils/formatter'
 
 interface PostProps {
-  codigo: string
+  data: Issue
 }
-function PostCard({ codigo }: PostProps) {
+
+function PostCard({ data }: PostProps) {
   return (
     <NavLink
-      to={`/${codigo}`}
-      title="titulo do post"
+      to={`/${data.id}`}
+      title={data.title}
       style={{ textDecoration: 'none' }}
     >
       <PostCardContainer>
         <header>
-          <strong>JavaScript data types and data structures</strong>
-          <span>
-            {formatDistanceToNow(new Date('2023-09-02T11:48:32.455Z'), {
-              addSuffix: true,
-              locale: ptBR,
-            })}
-          </span>
+          <strong>{data.title}</strong>
+          <span>{formatDateToRelativeTime(data.createdAt)}</span>
         </header>
 
-        <p>
-          Lorem ipsum, dolor sit amet consectetur adipisicing elit. Minus aut
-          est maiores, dolore libero quisquam iure id sit, soluta delectus
-          fugit, iste voluptate ut voluptates ipsum saepe. Alias,dolor sapiente?
-        </p>
+        <Content>
+          <p>{data.body}</p>
+        </Content>
       </PostCardContainer>
     </NavLink>
   )

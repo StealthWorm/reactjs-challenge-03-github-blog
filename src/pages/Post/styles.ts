@@ -43,11 +43,6 @@ export const HeaderContainer = styled.header`
         transition: text-decoration 2s;
         text-underline-offset: 4px;
       }
-
-      &:visited {
-        text-decoration: none;
-        color: ${(props) => props.theme['blue-500']};
-      }
     }
   }
 

@@ -11,21 +11,55 @@ import {
 
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { synthwave84 } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { IssuesContext } from '../../contexts/IssuesContext'
+import { formatDateToRelativeTime } from '../../utils/formatter'
+import { useContextSelector } from 'use-context-selector'
 
 function Post() {
-  // const { id } = useParams()
+  const { id } = useParams()
 
-  const codeSnippet = `
-    let foo = 42; // foo is now a number 
-    foo = ‘bar’; // foo is now a
-    string foo = true; // foo is now a boolean
-  `
+  const issues = useContextSelector(IssuesContext, (context) => {
+    return context.issues
+  })
+
+  if (!id || isNaN(parseInt(id, 10))) {
+    return <div>Invalid or missing issue ID</div>
+  }
+
+  const currentIssue = issues.find((issue) => issue.id === Number(id))
 
   const customDarkTheme = {
     ...synthwave84,
     backgroundColor: '#112131',
     borderRadius: '4px',
   }
+
+  const regex = /```([\s\S]*?)```/g
+  const contentArray = []
+  let lastIndex = 0
+  let match
+
+  if (currentIssue?.body) {
+    while ((match = regex.exec(currentIssue?.body))) {
+      // Extract content before the code block
+      const beforeCodeBlock = currentIssue?.body.slice(lastIndex, match.index)
+      if (beforeCodeBlock.trim() !== '') {
+        contentArray.push({ content: beforeCodeBlock, type: 'text' })
+      }
+      // Extract and add the code block
+      const codeBlock = match[1].trim()
+      contentArray.push({ content: codeBlock, type: 'code' })
+
+      lastIndex = match.index + match[0].length
+    }
+    // Add any remaining text after the last code block (if any)
+    const remainingText = currentIssue?.body.slice(lastIndex)
+    if (remainingText.trim() !== '') {
+      contentArray.push({ content: remainingText, type: 'text' })
+    }
+  }
+
+  // const lines = currentIssue?.body.split('\r')
 
   return (
     <PostContainer>
@@ -38,57 +72,55 @@ function Post() {
             />
             <strong>voltar</strong>
           </NavLink>
-          <a href="lnk para a issue" target="_blank" rel="noreferrer">
+          <a href={currentIssue?.url} target="_blank" rel="noreferrer">
             <strong>github</strong>
             <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
           </a>
         </header>
-        <h2>JavaScript data types and data structures</h2>
+        <h2>{currentIssue?.title}</h2>
         <footer>
           <div>
             <FontAwesomeIcon
               icon={faGithub}
               style={{ color: '#3A536B', height: '18px' }}
             />
-            <span>StealthWorm</span>
+            <span>{currentIssue?.user.login}</span>
           </div>
           <div>
             <FontAwesomeIcon
               icon={faCalendarDay}
               style={{ color: '#3A536B', height: '18px' }}
             />
-            <span>Bsoft</span>
+            <span>{formatDateToRelativeTime(currentIssue!.createdAt)}</span>
           </div>
           <div>
             <FontAwesomeIcon
               icon={faComment}
               style={{ color: '#3A536B', height: '18px' }}
             />
-            <span>32</span> comentários
+            <span>{currentIssue?.comments}</span> comentários
           </div>
         </footer>
       </HeaderContainer>
       <MainContainer>
-        <p>
-          Programming languages all have built-in data structures, but these
-          often differ from one language to another. This article attempts to
-          list the built-in data structures available in JavaScript and what
-          properties they have. These can be used to build other data
-          structures. Wherever possible, comparisons with other languages are
-          drawn. Dynamic typing JavaScript is a loosely typed and dynamic
-          language. Variables in JavaScript are not directly associated with any
-          particular value type, and any variable can be assigned (and
-          re-assigned) values of all types:
-        </p>
-        <code>
-          <SyntaxHighlighter
-            language="javascript"
-            style={synthwave84}
-            customStyle={customDarkTheme}
-          >
-            {codeSnippet}
-          </SyntaxHighlighter>
-        </code>
+        {contentArray.map((block, index) => (
+          <div key={index}>
+            {block.type === 'code' ? (
+              <code>
+                <SyntaxHighlighter
+                  language="javascript"
+                  style={synthwave84}
+                  customStyle={customDarkTheme}
+                  key={block.content}
+                >
+                  {block.content}
+                </SyntaxHighlighter>
+              </code>
+            ) : (
+              <p>{block.content}</p>
+            )}
+          </div>
+        ))}
       </MainContainer>
     </PostContainer>
   )

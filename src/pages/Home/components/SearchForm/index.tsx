@@ -2,9 +2,8 @@ import { useForm } from 'react-hook-form'
 import { SearchFormContainer } from './styles'
 import * as z from 'zod'
 import { zodResolver } from '@hookform/resolvers/zod'
-// import { useContextSelector } from 'use-context-selector'
-// import { TransactionsContext } from '../../../../contexts/TransactionsContext'
-// import { memo } from 'react'
+import { useContextSelector } from 'use-context-selector'
+import { IssuesContext } from '../../../../contexts/IssuesContext'
 
 const searchFormSchema = z.object({
   query: z.string(),
@@ -12,39 +11,47 @@ const searchFormSchema = z.object({
 
 type SearchFormInputs = z.infer<typeof searchFormSchema>
 
-// function SearchFormComponent() {
 export function SearchForm() {
-  // const fetchTransactions = useContextSelector(
-  //   TransactionsContext,
-  //   (context) => {
-  //     return context.fetchTransactions
-  //   },
-  // )
+  const fetchIssues = useContextSelector(IssuesContext, (context) => {
+    return context.fetchIssues
+  })
 
   const {
     register,
     handleSubmit,
+    setValue,
     // formState: { isSubmitting },
   } = useForm<SearchFormInputs>({
     resolver: zodResolver(searchFormSchema),
     // defaultValues: {}
   })
 
-  async function handleSearchTransactions(data: SearchFormInputs) {
-    // await fetchTransactions(data.query)
-    console.log(data)
+  async function handleSearchIssues(data: SearchFormInputs) {
+    await fetchIssues(data.query)
+  }
+
+  const handleChange = async (e) => {
+    const query = e.target.value
+    // setValue('query', query)
+    await fetchIssues(query)
   }
 
   return (
-    <SearchFormContainer onSubmit={handleSubmit(handleSearchTransactions)}>
+    <SearchFormContainer onSubmit={handleSubmit(handleSearchIssues)}>
       <input
         type="text"
         placeholder="Buscar conteúdo"
-        {...register('query')}
-        onChange={(e) => {
-          console.log(e.target.value)
-        }}
+        {...register('query', {
+          onChange: (e) => {
+            handleChange(e)
+          },
+        })}
+        // disabled={isSubmitting}
       />
+      {/* <button
+        type="submit"
+        style={{ width: '4rem', cursor: 'pointer' }}
+      ></button> */}
     </SearchFormContainer>
   )
 }

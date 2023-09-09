@@ -6,50 +6,81 @@ import {
   faUserFriends,
 } from '@fortawesome/free-solid-svg-icons'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
+import { api } from '../../lib/axios'
+import { useEffect, useState } from 'react'
+
+interface User {
+  id: number
+  name: string
+  login: string
+  url: string
+  followers: number
+  bio: string
+  company: string
+  userPhoto: string
+}
 
 export function Profile() {
+  const [user, setUser] = useState<User>()
+
+  async function fetchUserProfile() {
+    const response = await api.get('users/StealthWorm', {
+      headers: {
+        Authorization: `Bearer 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`,
+      },
+    })
+
+    const userData: User = {
+      id: response.data.id,
+      name: response.data.name,
+      login: response.data.login,
+      url: response.data.html_url,
+      followers: response.data.followers,
+      bio: response.data.bio,
+      company: response.data.company,
+      userPhoto: `${response.data.html_url}.png`,
+    }
+
+    setUser(userData)
+  }
+
+  useEffect(() => {
+    fetchUserProfile()
+  }, [])
+
   return (
     <ProfileContainer>
-      <img src="https://github.com/StealthWorm.png" alt="" />
+      <img src={user?.userPhoto} alt="" />
       <InfoContainer>
         <header>
-          <h2>Thierry P. Santos</h2>
-          <a
-            href="https://github.com/StealthWorm"
-            target="_blank"
-            rel="noreferrer"
-          >
+          <h2>{user?.name}</h2>
+          <a href={user?.url} target="_blank" rel="noreferrer">
             <strong>github</strong>
             <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
           </a>
         </header>
-        <main>
-          Lorem ipsum dolor sit amet consectetur, adipisicing elit. Obcaecati
-          deserunt ratione quae, quaerat eius esse quasi atque magni ullam iusto
-          perspiciatis tenetur repudiandae consequuntur? Vero sint beatae
-          dolorem a provident!
-        </main>
+        <main>{user?.bio}</main>
         <footer>
           <div>
             <FontAwesomeIcon
               icon={faGithub}
               style={{ color: '#3A536B', height: '18px' }}
             />
-            <span>StealthWorm</span>
+            <span>{user?.login}</span>
           </div>
           <div>
             <FontAwesomeIcon
               icon={faBuilding}
               style={{ color: '#3A536B', height: '18px' }}
             />
-            <span>Bsoft</span>
+            <span>{user?.company}</span>
           </div>
           <div>
             <FontAwesomeIcon
               icon={faUserFriends}
               style={{ color: '#3A536B', height: '18px' }}
             />
-            <span>32</span> seguidores
+            <span>{user?.followers}</span> seguidores
           </div>
         </footer>
       </InfoContainer>

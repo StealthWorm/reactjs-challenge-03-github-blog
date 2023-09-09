@@ -35,6 +35,13 @@ export const GlobalStyle = createGlobalStyle`
     font: 400 1rem/1.6  Nunito, sans-serif;
   }
 
+  a {
+    &:visited {
+        text-decoration: none;
+        color: ${(props) => props.theme['blue-500']};
+      }
+  }
+
   @media (max-width: 768px) {
     flex-direction: column;
     font-size: 87.5%;

@@ -23,7 +23,7 @@ export const ProfileContainer = styled.div`
 export const InfoContainer = styled.div`
   display: flex;
   flex-direction: column;
-  /* width: 100%; */
+  width: 100%;
 
   header {
     display: flex;
