@@ -5,35 +5,14 @@ import PostCard from './components/PostCard'
 import { useContextSelector } from 'use-context-selector'
 import { IssuesContext } from '../../contexts/IssuesContext'
 
-import {
-  HomeContainer,
-  PaginationContainer,
-  PostsContainer,
-  PostsGrid,
-} from './styles'
-
-import {
-  faChevronLeft,
-  faChevronRight,
-} from '@fortawesome/free-solid-svg-icons'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { HomeContainer, PostsContainer, PostsGrid } from './styles'
+import { Pagination } from './components/Pagination'
 
 export function Home() {
   const context = useContextSelector(IssuesContext, (context) => ({
     issues: context.issues,
-    nextPage: context.nextPage,
-    previousPage: context.previousPage,
-    currentPage: context.page,
-    firstPage: context.isFirstPage,
-    lastPage: context.isLastPage,
   }))
 
-  function handleNextPage() {
-    context.nextPage()
-  }
-  function handlePreviousPage() {
-    context.previousPage()
-  }
   return (
     <HomeContainer>
       <Profile />
@@ -47,15 +26,7 @@ export function Home() {
           })}
         </PostsGrid>
 
-        <PaginationContainer>
-          <button onClick={handlePreviousPage} disabled={context.firstPage}>
-            <FontAwesomeIcon icon={faChevronLeft} />
-          </button>
-          {context.currentPage}
-          <button onClick={handleNextPage} disabled={context.lastPage}>
-            <FontAwesomeIcon icon={faChevronRight} />
-          </button>
-        </PaginationContainer>
+        <Pagination />
       </PostsContainer>
     </HomeContainer>
   )

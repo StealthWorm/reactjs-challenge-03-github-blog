@@ -1,5 +1,4 @@
 import { NavLink, useParams } from 'react-router-dom'
-import { HeaderContainer, MainContainer, PostContainer } from './styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import {
@@ -8,57 +7,55 @@ import {
   faComment,
   faArrowUpRightFromSquare,
 } from '@fortawesome/free-solid-svg-icons'
-
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { synthwave84 } from 'react-syntax-highlighter/dist/esm/styles/prism'
-
-import { IssuesContext } from '../../contexts/IssuesContext'
-import { formatDateToRelativeTime } from '../../utils/formatter'
 import { useContextSelector } from 'use-context-selector'
 
-function Post() {
+import { HeaderContainer, MainContainer, PostContainer } from './styles'
+import { IssuesContext } from '../../contexts/IssuesContext'
+import { formatDateToRelativeTime } from '../../utils/formatter'
+
+export function Post() {
   const { id } = useParams()
-
-  const issues = useContextSelector(IssuesContext, (context) => {
-    return context.issues
-  })
-
+  const issues = useContextSelector(IssuesContext, (context) => context.issues)
   const currentIssue = issues.find((issue) => issue.id === Number(id))
 
-  if (!id || isNaN(parseInt(id, 10))) {
+  if (!id || isNaN(parseInt(id, 10)) || !currentIssue) {
     return <div>Invalid or missing issue ID</div>
   }
 
-  // const customDarkTheme = {
-  //   ...synthwave84,
-  //   backgroundColor: '#112131',
-  //   borderRadius: '4px',
-  // }
+  const contentArray = extractContentArray(currentIssue.body)
 
-  const contentArray = []
+  function extractContentArray(body: string) {
+    const contentArray = []
+    if (body) {
+      const regex = /```([\s\S]*?)```/g
+      let lastIndex = 0
+      let match
 
-  if (currentIssue?.body) {
-    const regex = /```([\s\S]*?)```/g
-    let lastIndex = 0
-    let match
+      while ((match = regex.exec(body))) {
+        // Extract content before the code block
+        const beforeCodeBlock = body.slice(lastIndex, match.index)
 
-    while ((match = regex.exec(currentIssue?.body))) {
-      // Extract content before the code block
-      const beforeCodeBlock = currentIssue?.body.slice(lastIndex, match.index)
-      if (beforeCodeBlock.trim() !== '') {
-        contentArray.push({ content: beforeCodeBlock, type: 'text' })
+        if (beforeCodeBlock.trim() !== '') {
+          contentArray.push({ content: beforeCodeBlock, type: 'text' })
+        }
+        // Extract and add the code block
+        const codeBlock = match[1].trim()
+
+        contentArray.push({ content: codeBlock, type: 'code' })
+
+        lastIndex = match.index + match[0].length
       }
-      // Extract and add the code block
-      const codeBlock = match[1].trim()
-      contentArray.push({ content: codeBlock, type: 'code' })
+      // Add any remaining text after the last code block (if any)
+      const remainingText = body.slice(lastIndex)
 
-      lastIndex = match.index + match[0].length
+      if (remainingText.trim() !== '') {
+        contentArray.push({ content: remainingText, type: 'text' })
+      }
     }
-    // Add any remaining text after the last code block (if any)
-    const remainingText = currentIssue?.body.slice(lastIndex)
-    if (remainingText.trim() !== '') {
-      contentArray.push({ content: remainingText, type: 'text' })
-    }
+
+    return contentArray
   }
 
   return (
@@ -67,15 +64,8 @@ function Post() {
         <>
           <HeaderContainer>
             <header>
-              <NavLink
-                to={`/`}
-                title="Voltar"
-                style={{ textDecoration: 'none' }}
-              >
-                <FontAwesomeIcon
-                  icon={faChevronLeft}
-                  style={{ color: '#3294F8', height: '18px' }}
-                />
+              <NavLink to={`/`} title="Voltar">
+                <FontAwesomeIcon icon={faChevronLeft} />
                 <strong>voltar</strong>
               </NavLink>
               <a href={currentIssue?.url} target="_blank" rel="noreferrer">
@@ -126,5 +116,3 @@ function Post() {
     </PostContainer>
   )
 }
-
-export default Post

@@ -6,51 +6,20 @@ import {
   faUserFriends,
 } from '@fortawesome/free-solid-svg-icons'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
-import { api } from '../../lib/axios'
-import { useEffect, useState } from 'react'
+import { useProfile } from '../../Hooks/useProfile'
 
-interface User {
-  id: number
-  name: string
-  login: string
-  url: string
-  followers: number
-  bio: string
-  company: string
-  userPhoto: string
-}
+import { memo } from 'react'
 
-export function Profile() {
-  const [user, setUser] = useState<User>()
-
-  async function fetchUserProfile() {
-    const response = await api.get('users/StealthWorm')
-
-    const userData: User = {
-      id: response.data.id,
-      name: response.data.name,
-      login: response.data.login,
-      url: response.data.html_url,
-      followers: response.data.followers,
-      bio: response.data.bio,
-      company: response.data.company,
-      userPhoto: `${response.data.html_url}.png`,
-    }
-
-    setUser(userData)
-  }
-
-  useEffect(() => {
-    fetchUserProfile()
-  }, [])
+function ProfileComponent() {
+  const user = useProfile()
 
   return (
     <ProfileContainer>
-      <img src={user?.userPhoto} alt="" />
+      <img src={user.userPhoto} alt="" />
       <InfoContainer>
         <header>
-          <h2>{user?.name}</h2>
-          <a href={user?.url} target="_blank" rel="noreferrer">
+          <h2>{user.name}</h2>
+          <a href={user.url} target="_blank" rel="noreferrer">
             <strong>github</strong>
             <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
           </a>
@@ -62,24 +31,26 @@ export function Profile() {
               icon={faGithub}
               style={{ color: '#3A536B', height: '18px' }}
             />
-            <span>{user?.login}</span>
+            <span>{user.login}</span>
           </div>
           <div>
             <FontAwesomeIcon
               icon={faBuilding}
               style={{ color: '#3A536B', height: '18px' }}
             />
-            <span>{user?.company}</span>
+            <span>{user.company}</span>
           </div>
           <div>
             <FontAwesomeIcon
               icon={faUserFriends}
               style={{ color: '#3A536B', height: '18px' }}
             />
-            <span>{user?.followers}</span> seguidores
+            <span>{user.followers}</span> seguidores
           </div>
         </footer>
       </InfoContainer>
     </ProfileContainer>
   )
 }
+
+export const Profile = memo(ProfileComponent)

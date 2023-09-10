@@ -6,7 +6,6 @@ export const HomeContainer = styled.main`
   justify-items: center;
   align-items: center;
   padding: 0 1.5rem 5rem;
-  /* padding: 0 18rem 5rem; */
 `
 
 export const PostsContainer = styled.main`
@@ -22,30 +21,4 @@ export const PostsGrid = styled.div`
   gap: 2rem;
   overflow-y: scroll;
   max-height: 20rem;
-`
-
-export const PaginationContainer = styled.footer`
-  display: flex;
-  padding: 0.5rem 0;
-  width: 100%;
-  justify-content: center;
-  align-items: center;
-  gap: 2rem;
-
-  button {
-    background: transparent;
-    border: 0;
-    color: ${(props) => props.theme['blue-150']};
-    cursor: pointer;
-
-    &:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    &:not(:disabled):hover {
-      color: ${(props) => props.theme['blue-500']};
-      transition: color 0.2s;
-    }
-  }
 `

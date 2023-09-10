@@ -16,21 +16,15 @@ export function SearchForm() {
     return context.fetchIssues
   })
 
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    // formState: { isSubmitting },
-  } = useForm<SearchFormInputs>({
+  const { register, handleSubmit } = useForm<SearchFormInputs>({
     resolver: zodResolver(searchFormSchema),
-    // defaultValues: {}
   })
 
   async function handleSearchIssues(data: SearchFormInputs) {
     await fetchIssues(data.query)
   }
 
-  const handleChange = async (e) => {
+  const handleChange = async (e: any) => {
     const query = e.target.value
     await fetchIssues(query)
   }
@@ -45,14 +39,7 @@ export function SearchForm() {
             handleChange(e)
           },
         })}
-        // disabled={isSubmitting}
       />
-      {/* <button
-        type="submit"
-        style={{ width: '4rem', cursor: 'pointer' }}
-      ></button> */}
     </SearchFormContainer>
   )
 }
-
-// export const SearchForm = memo(SearchFormComponent)

@@ -6,6 +6,17 @@ import { AxiosResponse } from 'axios'
 
 interface User {
   id: number
+  name: string
+  login: string
+  url: string
+  followers: number
+  bio: string
+  company: string
+  userPhoto: string
+}
+
+interface IssueUser {
+  id: number
   login: string
   url: string
 }
@@ -17,13 +28,15 @@ export interface Issue {
   title: string
   url: string
   body: string
-  user: User
+  user: IssueUser
   createdAt: string
 }
 
 interface IssuesContextType {
   issues: Issue[]
+  user: User
   fetchIssues: (query?: string) => Promise<void>
+  fetchUserProfile: () => Promise<void>
   page: number
   nextPage: () => void
   previousPage: () => void
@@ -40,6 +53,8 @@ export const IssuesContext = createContext({} as IssuesContextType)
 export function IssuesContextProvider({
   children,
 }: IssuesContextProviderProps) {
+  const [user, setUser] = useState<User>({} as User)
+
   const [issues, setIssues] = useState<Issue[]>(() => {
     const storedStateAsJSON = localStorage.getItem('@github-blog:issues-1.0.0')
 
@@ -47,6 +62,7 @@ export function IssuesContextProvider({
       return JSON.parse(storedStateAsJSON)
     }
   })
+
   const [page, setPage] = useState(() => {
     const storedStateAsJSON = localStorage.getItem(
       '@github-blog:current-page-1.0.0',
@@ -58,6 +74,7 @@ export function IssuesContextProvider({
 
     return 1
   })
+
   const [isFirstPage, setIsFirstPage] = useState(true)
   const [isLastPage, setIsLastPage] = useState(false)
 
@@ -72,6 +89,23 @@ export function IssuesContextProvider({
       setPage((state) => state - 1)
     }
   }
+
+  const fetchUserProfile = useCallback(async () => {
+    const response = await api.get('users/StealthWorm')
+
+    const userData: User = {
+      id: response.data.id,
+      name: response.data.name,
+      login: response.data.login,
+      url: response.data.html_url,
+      followers: response.data.followers,
+      bio: response.data.bio,
+      company: response.data.company,
+      userPhoto: `${response.data.html_url}.png`,
+    }
+
+    setUser(userData)
+  }, [])
 
   const fetchIssues = useCallback(
     async (query?: string) => {
@@ -98,10 +132,10 @@ export function IssuesContextProvider({
             },
             createdAt: issue.created_at,
           }
+
           return issueData
         })
       } else {
-        // url = `repositories/686629445/issues`
         url = `repos/StealthWorm/reactjs-challenge-03-github-blog/issues`
         response = await api.get(url, { params: { page } })
 
@@ -136,7 +170,8 @@ export function IssuesContextProvider({
 
   useEffect(() => {
     fetchIssues()
-  }, [fetchIssues])
+    fetchUserProfile()
+  }, [fetchIssues, fetchUserProfile])
 
   useEffect(() => {
     localStorage.setItem('@github-blog:issues-1.0.0', JSON.stringify(issues))
@@ -150,7 +185,9 @@ export function IssuesContextProvider({
     <IssuesContext.Provider
       value={{
         issues,
+        user,
         fetchIssues,
+        fetchUserProfile,
         page,
         nextPage,
         previousPage,
