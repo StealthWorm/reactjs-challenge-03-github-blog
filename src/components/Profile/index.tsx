@@ -24,11 +24,7 @@ export function Profile() {
   const [user, setUser] = useState<User>()
 
   async function fetchUserProfile() {
-    const response = await api.get('users/StealthWorm', {
-      headers: {
-        Authorization: `Bearer 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`,
-      },
-    })
+    const response = await api.get('users/StealthWorm')
 
     const userData: User = {
       id: response.data.id,

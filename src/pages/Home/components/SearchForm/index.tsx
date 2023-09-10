@@ -32,7 +32,6 @@ export function SearchForm() {
 
   const handleChange = async (e) => {
     const query = e.target.value
-    // setValue('query', query)
     await fetchIssues(query)
   }
 

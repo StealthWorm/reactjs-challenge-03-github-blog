@@ -24,6 +24,11 @@ export interface Issue {
 interface IssuesContextType {
   issues: Issue[]
   fetchIssues: (query?: string) => Promise<void>
+  page: number
+  nextPage: () => void
+  previousPage: () => void
+  isLastPage: boolean
+  isFirstPage: boolean
 }
 
 interface IssuesContextProviderProps {
@@ -36,73 +41,85 @@ export function IssuesContextProvider({
   children,
 }: IssuesContextProviderProps) {
   const [issues, setIssues] = useState<Issue[]>([])
+  const [page, setPage] = useState(1)
+  const [isFirstPage, setIsFirstPage] = useState(true)
+  const [isLastPage, setIsLastPage] = useState(false)
 
-  const fetchIssues = useCallback(async (query?: string) => {
-    let response: AxiosResponse
-    let transformedIssues: Issue[]
-
-    if (query) {
-      response = await api.get(
-        `search/issues?q=${query}+repo:StealthWorm/reactjs-challenge-03-github-blog`,
-        {
-          headers: {
-            Authorization: `Bearer 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`,
-          },
-        },
-      )
-
-      transformedIssues = response.data.items.map((issue: any) => {
-        const issueData: Issue = {
-          id: issue.id,
-          number: issue.number,
-          comments: issue.comments,
-          title: issue.title,
-          url: issue.html_url,
-          body: issue.body,
-          user: {
-            id: issue.user.id,
-            login: issue.user.login,
-            url: issue.user.html_url,
-          },
-          createdAt: issue.created_at,
-        }
-        return issueData
-      })
-    } else {
-      response = await api.get(
-        `repos/StealthWorm/reactjs-challenge-03-github-blog/issues?q=${query}+in:title`,
-        {
-          headers: {
-            Authorization: 'Bearer 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',
-          },
-          params: {
-            per_page: 4,
-            page: 1,
-          },
-        },
-      )
-
-      transformedIssues = response.data.map((issue: any) => {
-        const issueData: Issue = {
-          id: issue.id,
-          number: issue.number,
-          comments: issue.comments,
-          title: issue.title,
-          url: issue.html_url,
-          body: issue.body,
-          user: {
-            id: issue.user.id,
-            login: issue.user.login,
-            url: issue.user.html_url,
-          },
-          createdAt: issue.created_at,
-        }
-        return issueData
-      })
+  function nextPage() {
+    if (!isLastPage) {
+      setPage((state) => state + 1)
     }
+  }
 
-    setIssues(transformedIssues)
-  }, [])
+  function previousPage() {
+    if (!isFirstPage) {
+      setPage((state) => state - 1)
+    }
+  }
+
+  const fetchIssues = useCallback(
+    async (query?: string) => {
+      let response: AxiosResponse
+      let transformedIssues: Issue[]
+      let url
+
+      if (query) {
+        url = `search/issues?q=${query}+repo:StealthWorm/reactjs-challenge-03-github-blog`
+        response = await api.get(url)
+
+        transformedIssues = response.data.items.map((issue: any) => {
+          const issueData: Issue = {
+            id: issue.id,
+            number: issue.number,
+            comments: issue.comments,
+            title: issue.title,
+            url: issue.html_url,
+            body: issue.body,
+            user: {
+              id: issue.user.id,
+              login: issue.user.login,
+              url: issue.user.html_url,
+            },
+            createdAt: issue.created_at,
+          }
+          return issueData
+        })
+      } else {
+        // url = `repositories/686629445/issues`
+        url = `repos/StealthWorm/reactjs-challenge-03-github-blog/issues`
+        response = await api.get(url, { params: { page } })
+
+        console.log(response.data.length)
+
+        transformedIssues = response.data.map((issue: any) => {
+          const issueData: Issue = {
+            id: issue.id,
+            number: issue.number,
+            comments: issue.comments,
+            title: issue.title,
+            url: issue.html_url,
+            body: issue.body,
+            user: {
+              id: issue.user.id,
+              login: issue.user.login,
+              url: issue.user.html_url,
+            },
+            createdAt: issue.created_at,
+          }
+          return issueData
+        })
+      }
+
+      if (response.headers.link) {
+        console.log(response.headers.link)
+        setIsFirstPage(!response.headers.link.includes(`rel="first"`))
+        setIsLastPage(!response.headers.link.includes(`rel="last"`))
+      }
+
+      setIssues(transformedIssues)
+    },
+    [page],
+  )
 
   useEffect(() => {
     fetchIssues()
@@ -113,6 +130,11 @@ export function IssuesContextProvider({
       value={{
         issues,
         fetchIssues,
+        page,
+        nextPage,
+        previousPage,
+        isFirstPage,
+        isLastPage,
       }}
     >
       {children}
