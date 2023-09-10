@@ -40,8 +40,24 @@ export const IssuesContext = createContext({} as IssuesContextType)
 export function IssuesContextProvider({
   children,
 }: IssuesContextProviderProps) {
-  const [issues, setIssues] = useState<Issue[]>([])
-  const [page, setPage] = useState(1)
+  const [issues, setIssues] = useState<Issue[]>(() => {
+    const storedStateAsJSON = localStorage.getItem('@github-blog:issues-1.0.0')
+
+    if (storedStateAsJSON) {
+      return JSON.parse(storedStateAsJSON)
+    }
+  })
+  const [page, setPage] = useState(() => {
+    const storedStateAsJSON = localStorage.getItem(
+      '@github-blog:current-page-1.0.0',
+    )
+
+    if (storedStateAsJSON) {
+      return Number(JSON.parse(storedStateAsJSON))
+    }
+
+    return 1
+  })
   const [isFirstPage, setIsFirstPage] = useState(true)
   const [isLastPage, setIsLastPage] = useState(false)
 
@@ -89,8 +105,6 @@ export function IssuesContextProvider({
         url = `repos/StealthWorm/reactjs-challenge-03-github-blog/issues`
         response = await api.get(url, { params: { page } })
 
-        console.log(response.data.length)
-
         transformedIssues = response.data.map((issue: any) => {
           const issueData: Issue = {
             id: issue.id,
@@ -111,7 +125,6 @@ export function IssuesContextProvider({
       }
 
       if (response.headers.link) {
-        console.log(response.headers.link)
         setIsFirstPage(!response.headers.link.includes(`rel="first"`))
         setIsLastPage(!response.headers.link.includes(`rel="last"`))
       }
@@ -124,6 +137,14 @@ export function IssuesContextProvider({
   useEffect(() => {
     fetchIssues()
   }, [fetchIssues])
+
+  useEffect(() => {
+    localStorage.setItem('@github-blog:issues-1.0.0', JSON.stringify(issues))
+    localStorage.setItem(
+      '@github-blog:current-page-1.0.0',
+      JSON.stringify(page),
+    )
+  }, [issues, page])
 
   return (
     <IssuesContext.Provider
