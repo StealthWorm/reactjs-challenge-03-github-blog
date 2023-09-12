@@ -61,6 +61,8 @@ export function IssuesContextProvider({
     if (storedStateAsJSON) {
       return JSON.parse(storedStateAsJSON)
     }
+
+    return []
   })
 
   const [page, setPage] = useState(() => {
